@@ -8,7 +8,9 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'devops', url: 'https://github.com/MajedSmichi/student-management.git'
+                git branch: 'devops', 
+                url: 'https://github.com/MajedSmichi/student-management.git',
+                credentialsId: 'devops'
             }
         }
 
