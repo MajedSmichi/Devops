@@ -32,10 +32,25 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Docker Build') {
             steps {
-                echo 'Deploying application...'
+                echo 'Building Docker image...'
+                sh 'docker build -t student-management:latest .'
             }
+        }
+
+        stage('Docker Compose Deploy') {
+            steps {
+                echo 'Deploying application with Docker Compose...'
+                sh 'docker-compose down || true'  // arrête les anciens conteneurs si existants
+                sh 'docker-compose up -d --build'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
         }
     }
 }
