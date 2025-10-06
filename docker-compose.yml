@@ -1,38 +1,17 @@
 version: "3.9"
 
 services:
-  mysql:
-    image: mysql:8.1
-    container_name: student-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: studentdb
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
-    ports:
-      - "3306:3306"  # Change si MySQL local est déjà sur 3306
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - student-network
-
   app:
     build: .
-    image: student-management
     container_name: student-app
     ports:
       - "8089:8089"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/studentdb?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-test:3306/studentdb?createDatabaseIfNotExist=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
-    depends_on:
-      - mysql
     networks:
       - student-network
-
-volumes:
-  mysql_data:
 
 networks:
   student-network:
