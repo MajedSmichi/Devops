@@ -10,16 +10,16 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD: root
     ports:
-      - "3306:3306"
+      - "3306:3306"  # Change si MySQL local est déjà sur 3306
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - student-network
 
   app:
+    build: .
     image: student-management
     container_name: student-app
-    build: .
     ports:
       - "8089:8089"
     environment:
