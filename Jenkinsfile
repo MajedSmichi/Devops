@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'devops', 
-                url: 'https://github.com/MajedSmichi/student-management.git',
+                url: 'https://github.com/MajedSmichi/Devops.git',
                 credentialsId: 'devops'
             }
         }
