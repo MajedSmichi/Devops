@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        SONAR_TOKEN = credentials('sonarqube-token') // Ton token SonarQube enregistré dans Jenkins
+        SONAR_TOKEN = credentials('jenkins') // Ton token SonarQube enregistré dans Jenkins
     }
 
     stages {
