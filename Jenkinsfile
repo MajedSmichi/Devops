@@ -5,6 +5,10 @@ pipeline {
         maven 'Maven3'
     }
 
+    environment {
+        SONAR_TOKEN = credentials('sonarqube-token') // Ton token SonarQube enregistré dans Jenkins
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -23,6 +27,14 @@ pipeline {
         stage('Test') {
             steps {
                 sh 'mvn test'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') { // Le nom du serveur configuré dans Jenkins → Manage Jenkins → Configure System → SonarQube servers
+                    sh "mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONAR_TOKEN}"
+                }
             }
         }
 
