@@ -16,5 +16,5 @@ RUN chmod +x /wait-for-it.sh
 EXPOSE 8089
 
 # Attendre MySQL avant de démarrer Spring Boot
-ENTRYPOINT ["/wait-for-it.sh", "mysql:3306", "--", "java", "-jar", "app.jar"]
+ENTRYPOINT ["/wait-for-it.sh", "mysql:3306", "--timeout=30", "--strict", "--", "java", "-jar", "app.jar"]
 
