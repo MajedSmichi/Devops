@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'
+        maven 'Maven3' // Assure-toi que Maven est configuré dans Jenkins
     }
 
     environment {
@@ -32,8 +32,9 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { // Le nom du serveur configuré dans Jenkins → Manage Jenkins → Configure System → SonarQube servers
-                    sh "mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${SONAR_TOKEN}"
+                withSonarQubeEnv('SonarQube') { // Nom du serveur SonarQube configuré dans Jenkins
+                    // Utiliser le nom du conteneur SonarQube dans Docker network
+                    sh "mvn sonar:sonar -Dsonar.projectKey=student-management -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
         }
@@ -54,7 +55,7 @@ pipeline {
         stage('Docker Compose Deploy') {
             steps {
                 echo 'Deploying application with Docker Compose...'
-                sh 'docker-compose down || true'  // arrête les anciens conteneurs si existants
+                sh 'docker-compose down || true'  // Arrête les anciens conteneurs si existants
                 sh 'docker-compose up -d --build'
             }
         }
