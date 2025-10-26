@@ -78,6 +78,21 @@ pipeline {
         }
     }
 
+    stage('Deploy Monitoring') {
+    steps {
+        script {
+            echo 'Deploying Prometheus and Grafana...'
+            sh 'kubectl apply -f k8s/monitoring/namespace.yaml'
+            sh 'kubectl apply -f k8s/monitoring/prometheus-config.yaml'
+            sh 'kubectl apply -f k8s/monitoring/prometheus-deployment.yaml'
+            sh 'kubectl apply -f k8s/monitoring/prometheus-service.yaml'
+            sh 'kubectl apply -f k8s/monitoring/grafana-deployment.yaml'
+            sh 'kubectl apply -f k8s/monitoring/grafana-service.yaml'
+        }
+    }
+}
+
+
     post {
         always {
             echo '✅ Pipeline terminé'
