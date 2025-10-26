@@ -9,7 +9,7 @@ pipeline {
         SONAR_TOKEN = credentials('sonar-devops')
         KUBECONFIG = '/var/jenkins_home/.kube/config'
         DOCKERHUB_CREDENTIALS = 'dockerhub-cred' // ID du credentials Jenkins pour Docker Hub
-        DOCKERHUB_REPO = 'majed/student-management' // ton repo Docker Hub
+        DOCKERHUB_REPO = 'majedsmichi/student-management' // ton repo Docker Hub
         IMAGE_TAG = "latest"
     }
 
