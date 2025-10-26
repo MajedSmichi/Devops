@@ -90,6 +90,17 @@ pipeline {
                 }
             }
         }
+        stage('Check Student App') {
+    steps {
+        script {
+            sh """
+                kubectl rollout status deployment/student-app -n student-management
+                kubectl exec -it \$(kubectl get pod -l app=student-app -n student-management -o jsonpath='{.items[0].metadata.name}') -n student-management -- wget -qO- http://localhost:8089/student/actuator/prometheus
+            """
+        }
+    }
+}
+
         
     }
 
