@@ -7,6 +7,10 @@ pipeline {
 
     environment {
         SONAR_TOKEN = credentials('sonar-devops')
+        KUBECONFIG = '/var/jenkins_home/.kube/config'
+        DOCKERHUB_CREDENTIALS = 'dockerhub-cred' // ID du credentials Jenkins pour Docker Hub
+        DOCKERHUB_REPO = 'majed/student-management' // ton repo Docker Hub
+        IMAGE_TAG = "latest"
     }
 
     stages {
@@ -20,7 +24,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean package -DskipTests'  // ✅ ignore les tests ici
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -38,16 +42,36 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build & Push') {
             steps {
-                sh 'docker build -t student-management:latest .'
+                script {
+                    sh "docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} ."
+
+                    // Login Docker Hub
+                    withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", 
+                                                      usernameVariable: 'DOCKER_USER', 
+                                                      passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    }
+
+                    // Push de l'image
+                    sh "docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}"
+                }
             }
         }
 
-        stage('Docker Compose Deploy') {
+        stage('Kubernetes Deploy') {
             steps {
-                sh 'docker-compose down || true'
-                sh 'docker-compose up -d --build'
+                script {
+                    echo 'Deploying application on Kubernetes...'
+                    sh 'kubectl apply -f k8s/namespace.yaml || true'
+                    sh 'kubectl apply -f k8s/mysql-deployment.yaml'
+                    sh 'kubectl apply -f k8s/mysql-service.yaml'
+
+                    // Mettre à jour le deployment Spring Boot avec l'image Docker Hub
+                    sh "kubectl set image deployment/student-app student-app=${DOCKERHUB_REPO}:${IMAGE_TAG}"
+                    sh 'kubectl apply -f k8s/student-app-service.yaml'
+                }
             }
         }
     }
