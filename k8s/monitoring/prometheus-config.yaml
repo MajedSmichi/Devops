@@ -37,3 +37,8 @@ data:
           - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
             action: keep
             regex: kubernetes;https
+
+      # Scraper kube-state-metrics
+      - job_name: 'kube-state-metrics'
+        static_configs:
+          - targets: ['kube-state-metrics.kube-state-metrics.svc.cluster.local:8080']
