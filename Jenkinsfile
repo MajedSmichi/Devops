@@ -8,8 +8,8 @@ pipeline {
     environment {
         SONAR_TOKEN = credentials('sonar-devops')
         KUBECONFIG = '/var/jenkins_home/.kube/config'
-        DOCKERHUB_CREDENTIALS = 'dockerhub-cred' // ID du credentials Jenkins pour Docker Hub
-        DOCKERHUB_REPO = 'majedsmichi/student-management' // ton repo Docker Hub
+        DOCKERHUB_CREDENTIALS = 'dockerhub-cred' 
+        DOCKERHUB_REPO = 'majedsmichi/student-management'
         IMAGE_TAG = "latest"
     }
 
@@ -46,15 +46,13 @@ pipeline {
             steps {
                 script {
                     sh "docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} ."
-
-                    // Login Docker Hub
+                    
                     withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", 
                                                       usernameVariable: 'DOCKER_USER', 
                                                       passwordVariable: 'DOCKER_PASS')]) {
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                     }
 
-                    // Push de l'image
                     sh "docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}"
                 }
             }
@@ -68,8 +66,12 @@ pipeline {
                     sh 'kubectl apply -f k8s/mysql-deployment.yaml'
                     sh 'kubectl apply -f k8s/mysql-service.yaml'
 
-                    // Mettre à jour le deployment Spring Boot avec l'image Docker Hub
-                    sh "kubectl set image deployment/student-app student-app=${DOCKERHUB_REPO}:${IMAGE_TAG}"
+                    // ✅ Important : Créer le déploiement de l'application avant changement d'image
+                    sh 'kubectl apply -f k8s/student-app-deployment.yaml'
+
+                    // ✅ Mise à jour de l'image
+                    sh "kubectl set image deployment/student-app student-app=${DOCKERHUB_REPO}:${IMAGE_TAG} -n student-management"
+
                     sh 'kubectl apply -f k8s/student-app-service.yaml'
                 }
             }
