@@ -13,7 +13,7 @@ data:
       - job_name: 'spring-boot-app'
         metrics_path: '/student/actuator/prometheus'
         static_configs:
-          - targets: ['student-app:8089']
+          - targets: ['student-app.student-management.svc.cluster.local:8089']
 
       # Scraper kubelet metrics pour tous les nœuds
       - job_name: 'kubelets'
