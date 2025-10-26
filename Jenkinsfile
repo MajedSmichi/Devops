@@ -66,13 +66,26 @@ pipeline {
                     sh 'kubectl apply -f k8s/mysql-deployment.yaml'
                     sh 'kubectl apply -f k8s/mysql-service.yaml'
 
-                    // ✅ Important : Créer le déploiement de l'application avant changement d'image
+                    // Créer ou mettre à jour le déploiement de l'application
                     sh 'kubectl apply -f k8s/student-app-deployment.yaml'
-
-                    // ✅ Mise à jour de l'image
                     sh "kubectl set image deployment/student-app student-app=${DOCKERHUB_REPO}:${IMAGE_TAG} -n student-management"
-
                     sh 'kubectl apply -f k8s/student-app-service.yaml'
+                }
+            }
+        }
+
+        stage('Check Student App') {
+            steps {
+                script {
+                    echo 'Checking if Student App is ready...'
+                    sh '''
+                        POD=$(kubectl get pod -l app=student-app -n student-management -o jsonpath='{.items[0].metadata.name}')
+                        for i in {1..10}; do
+                            kubectl exec $POD -n student-management -- wget -qO- http://localhost:8089/student/actuator/prometheus && break
+                            echo "Waiting for student-app to be ready..."
+                            sleep 5
+                        done
+                    '''
                 }
             }
         }
@@ -90,26 +103,17 @@ pipeline {
                 }
             }
         }
-        stage('Check Student App') {
-    steps {
-        script {
-            sh """
-                kubectl rollout status deployment/student-app -n student-management
-                kubectl exec -it \$(kubectl get pod -l app=student-app -n student-management -o jsonpath='{.items[0].metadata.name}') -n student-management -- wget -qO- http://localhost:8089/student/actuator/prometheus
-            """
-        }
     }
-}
-
-        
-    }
-
-   
-
 
     post {
         always {
             echo '✅ Pipeline terminé'
+        }
+        success {
+            echo '🎉 Build & deploy réussis !'
+        }
+        failure {
+            echo '❌ Il y a eu un problème dans la pipeline.'
         }
     }
 }
