@@ -8,7 +8,7 @@ pipeline {
     environment {
         SONAR_TOKEN = credentials('sonar-devops')
         KUBECONFIG = '/var/jenkins_home/.kube/config'
-        DOCKERHUB_CREDENTIALS = 'dockerhub-cred' 
+        DOCKERHUB_CREDENTIALS = 'dockerhub-cred'
         DOCKERHUB_REPO = 'majedsmichi/student-management'
         IMAGE_TAG = "latest"
     }
@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                     sh "docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} ."
-                    
+
                     withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", 
                                                       usernameVariable: 'DOCKER_USER', 
                                                       passwordVariable: 'DOCKER_PASS')]) {
@@ -66,25 +66,18 @@ pipeline {
                     sh 'kubectl apply -f k8s/mysql-deployment.yaml'
                     sh 'kubectl apply -f k8s/mysql-service.yaml'
 
-                    // Créer ou mettre à jour le déploiement de l'application
                     sh 'kubectl apply -f k8s/student-app-deployment.yaml'
                     sh "kubectl set image deployment/student-app student-app=${DOCKERHUB_REPO}:${IMAGE_TAG} -n student-management"
                     sh 'kubectl apply -f k8s/student-app-service.yaml'
-                }
-            }
-        }
 
-        stage('Check Student App') {
-            steps {
-                script {
-                    echo 'Checking if Student App is ready...'
+                    // ✅ Vérification que l'application Student App est prête
                     sh '''
-                        POD=$(kubectl get pod -l app=student-app -n student-management -o jsonpath='{.items[0].metadata.name}')
-                        for i in {1..10}; do
-                            kubectl exec $POD -n student-management -- wget -qO- http://localhost:8089/student/actuator/prometheus && break
-                            echo "Waiting for student-app to be ready..."
-                            sleep 5
-                        done
+                    POD=$(kubectl get pod -l app=student-app -n student-management -o jsonpath='{.items[0].metadata.name}')
+                    for i in {1..12}; do
+                        kubectl exec $POD -n student-management -- /bin/sh -c "curl -sf http://localhost:8089/student/actuator/prometheus" && break
+                        echo "Waiting for student-app to be ready..."
+                        sleep 5
+                    done
                     '''
                 }
             }
@@ -108,12 +101,6 @@ pipeline {
     post {
         always {
             echo '✅ Pipeline terminé'
-        }
-        success {
-            echo '🎉 Build & deploy réussis !'
-        }
-        failure {
-            echo '❌ Il y a eu un problème dans la pipeline.'
         }
     }
 }
