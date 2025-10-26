@@ -11,7 +11,7 @@ data:
     scrape_configs:
       # Scraper ton application Spring Boot
       - job_name: 'spring-boot-app'
-        metrics_path: '/actuator/prometheus'
+        metrics_path: '/student/actuator/prometheus'
         static_configs:
           - targets: ['student-app:8089']
 
